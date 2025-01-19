@@ -1,8 +1,10 @@
 ---
 collections:
-    - name: kubernetes.base
-      version: 2.2.3
+    - name: kubernetes.core
+      version: 5.0.0
+    - name: community.general
+      version: 10.2.0
+    - name: hifis.toolkit
+      version: 5.2.0
 roles:
     - src: xanmanning.k3s
-    - src: michaelpalacce.helm
-    - src: michaelpalacce.kubernetes_preflight

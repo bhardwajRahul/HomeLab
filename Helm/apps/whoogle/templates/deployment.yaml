@@ -7,57 +7,52 @@ metadata:
     name: whoogle
     namespace: {{ $.Release.Namespace }}
     labels:
-        app: whoogle
+        app.kubernetes.io/instance: whoogle
+        app.kubernetes.io/name: whoogle
 spec:
-    replicas: 1
+    replicas: {{ .replicas }}
     selector:
         matchLabels:
-            app: whoogle
+            app.kubernetes.io/instance: whoogle
+            app.kubernetes.io/name: whoogle
     template:
         metadata:
             labels:
-                app: whoogle
+                app.kubernetes.io/instance: whoogle
+                app.kubernetes.io/name: whoogle
         spec:
+            restartPolicy: Always
             containers:
-                - name: whoogle
-                  image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
+                -   name: whoogle
+                    image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
+                    env:
+                        -   name: HTTPS_ONLY
+                            value: "true"
+                        -   name: WHOOGLE_CONFIG_THEME
+                            value: "dark"
+                    securityContext:
+                        privileged: false
+                        runAsNonRoot: true
+                        allowPrivilegeEscalation: false
+                        runAsUser: 927
+                        runAsGroup: 927
 {{- if .resources }}
-                  resources:
+                    resources:
 {{ toYaml .resources | indent 22 }}
 {{- end }}
-                  ports:
-                      - name: web
-                        containerPort: {{ .port }}
-                  livenessProbe:
-                      failureThreshold: 2
-                      initialDelaySeconds: 120
-                      periodSeconds: 120
-                      timeoutSeconds: 2
-                      tcpSocket:
-                          port: {{ .port }}
-
-            restartPolicy: Always
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-    name: whoogle
-    namespace: {{ $.Release.Namespace }}
-spec:
-    {{- with .nodePort }}
-    type: NodePort
-    {{- end }}
-    selector:
-        app: whoogle
-    ports:
-        - name: whoogle
-          protocol: TCP
-          port: {{ .port }}
-          {{- with .nodePort }}
-          nodePort: {{ . }}
-          {{- end }}
-
+                    ports:
+                        -   name: web
+                            containerPort: {{ .port }}
+                    livenessProbe:
+                        failureThreshold: 2
+                        initialDelaySeconds: 30
+                        timeoutSeconds: 2
+                        tcpSocket:
+                            port: {{ .port }}
+                    startupProbe:
+                        failureThreshold: 5
+                        timeoutSeconds: 2
+                        tcpSocket:
+                            port: {{ .port }}
 {{- end }}

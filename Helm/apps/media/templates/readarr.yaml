@@ -7,56 +7,74 @@ metadata:
     name: readarr
     namespace: {{ $.Release.Namespace }}
     labels:
-        app: readarr
+        app.kubernetes.io/instance: readarr
+        app.kubernetes.io/name: readarr
 spec:
-    replicas: 1
+    replicas: {{ .replicas }}
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
-            app: readarr
+            app.kubernetes.io/instance: readarr
+            app.kubernetes.io/name: readarr
     template:
         metadata:
+            annotations:
+                backup.velero.io/backup-volumes: config
             labels:
-                app: readarr
+                app.kubernetes.io/instance: readarr
+                app.kubernetes.io/name: readarr
         spec:
-            nodeSelector:
-                type: media
             containers:
-                - name: readarr
-                  image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
-                  env:
-                      - name: PUID
-                        value: "0"
-                      - name: GUID
-                        value: "0"
-                  resources:
-                      requests:
-                          cpu: 125m
-                          memory: 100Mi
-                      limits:
-                          cpu: 250m
-                          memory: 512Mi
-                  ports:
-                      - name: web
-                        containerPort: {{ .port }}
-                  volumeMounts:
-                      - name: app-data
-                        mountPath: /config
-                      - name: downloads-data
-                        mountPath: /downloads
-                      - name: books-data-nfs
-                        mountPath: /books
+                -   name: readarr
+                    image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
+                    securityContext:
+                        privileged: false
+                        allowPrivilegeEscalation: false
+                    env:
+                        -   name: PUID
+                            value: "1000"
+                        -   name: GUID
+                            value: "1000"
+{{- if .resources }}
+                    resources:
+{{ toYaml .resources | indent 22 }}
+{{- end }}
+                    ports:
+                        -   name: web
+                            containerPort: {{ .port }}
+                    volumeMounts:
+                        -   name: config
+                            mountPath: /config
+                        -   name: downloads-data
+                            mountPath: /downloads
+                        -   name: books-data-nfs
+                            mountPath: /books
+                    livenessProbe:
+                        failureThreshold: 5
+                        initialDelaySeconds: 30
+                        timeoutSeconds: 2
+                        tcpSocket:
+                            port: {{ .port }}
+                    startupProbe:
+                        failureThreshold: 10
+                        timeoutSeconds: 2
+                        tcpSocket:
+                            port: {{ .port }}
             restartPolicy: Always
             volumes:
-                - name: app-data
-                  hostPath:
-                      path: /mnt/media/readarr
                 - name: books-data-nfs
-                  persistentVolumeClaim:
-                      claimName: books-volume-nfs
+                  nfs:
+                      path: "/volume1/k3s/media/books"
+                      server: "192.168.1.39"
                 - name: downloads-data
+                  nfs:
+                      path: "/volume1/k3s/media/downloads"
+                      server: "192.168.1.39"
+                - name: config
                   persistentVolumeClaim:
-                      claimName: downloads-volume
+                      claimName: readarr-config-pvc
 ---
 
 apiVersion: v1
@@ -65,17 +83,11 @@ metadata:
     name: readarr
     namespace: {{ $.Release.Namespace }}
 spec:
-    {{- with .nodePort }}
-    type: NodePort
-    {{- end }}
     selector:
-        app: readarr
+        app.kubernetes.io/instance: readarr
+        app.kubernetes.io/name: readarr
     ports:
-        - name: readarr
-          protocol: TCP
-          port: {{ .port }}
-          {{- with .nodePort }}
-          nodePort: {{ . }}
-          {{- end }}
-
+        -   name: readarr
+            protocol: TCP
+            port: {{ .port }}
 {{- end }}

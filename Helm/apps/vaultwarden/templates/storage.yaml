@@ -1,39 +1,12 @@
 ---
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-    name: vaultwarden-sc
-provisioner: driver.longhorn.io
-allowVolumeExpansion: true
-parameters:
-    numberOfReplicas: "{{ .Values.storage.numberOfReplicas }}"
-    dataLocality: "{{ .Values.storage.dataLocality }}"
-    staleReplicaTimeout: "2800"
-    fromBackup: ""
-
----
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: vaultwarden-pvc
+    name: vaultwarden
 spec:
     accessModes:
-        - ReadWriteMany
-    storageClassName: vaultwarden-sc
+        - ReadWriteOnce
+    storageClassName: longhorn
     resources:
         requests:
             storage: {{ .Values.storage.dataSize }}
----
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-    name: vaultwarden-backup-pvc
-spec:
-    accessModes:
-        - ReadWriteMany
-    storageClassName: vaultwarden-sc
-    resources:
-        requests:
-            storage: {{ .Values.storage.backupSize }}

@@ -10,6 +10,8 @@ metadata:
         app: loki
 spec:
     replicas: 1
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
             app: loki
@@ -18,44 +20,48 @@ spec:
             labels:
                 app: loki
         spec:
+            securityContext:
+              privileged: false
+              allowPrivilegeEscalation: false
+              fsGroup: 10001 
             containers:
-                - name: loki
-                  image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
+                -   name: loki
+                    image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
 {{- if .resources }}
-                  resources:
+                    resources:
 {{ toYaml .resources | indent 22 }}
 {{- end }}
-                  ports:
-                      - name: web
-                        containerPort: {{ .port }}
-                  volumeMounts:
-                      - name: app-config
-                        mountPath: /loki
-                      - name: loki-logs
-                        mountPath: /tmp/loki
-                      - name: loki-config
-                        mountPath: /etc/loki/local-config.yaml
-                        subPath: local-config.yaml
-                  livenessProbe:
-                      failureThreshold: 5
-                      initialDelaySeconds: 120
-                      periodSeconds: 120
-                      timeoutSeconds: 5
-                      tcpSocket:
-                          port: {{ .port }}
+                    ports:
+                        -   name: web
+                            containerPort: {{ .port }}
+                    volumeMounts:
+                        -   name: app-config
+                            mountPath: /loki
+                        -   name: loki-logs
+                            mountPath: /tmp/loki
+                        -   name: loki-config
+                            mountPath: /etc/loki/local-config.yaml
+                            subPath: local-config.yaml
+                    livenessProbe:
+                        failureThreshold: 5
+                        initialDelaySeconds: 120
+                        periodSeconds: 120
+                        timeoutSeconds: 5
+                        tcpSocket:
+                            port: {{ .port }}
 
             restartPolicy: Always
             volumes:
-                - name: app-config
-                  persistentVolumeClaim:
-                      claimName: loki-pvc
-                - name: loki-logs
-                  persistentVolumeClaim:
-                      claimName: loki-logs-nfs
-                - name: loki-config
-                  configMap:
-                      name: loki-config
+                -   name: app-config
+                    persistentVolumeClaim:
+                        claimName: loki-pvc
+                -   name: loki-logs
+                    persistentVolumeClaim:
+                        claimName: loki-logs
+                -   name: loki-config
+                    configMap:
+                        name: loki-config
 
 ---
 
@@ -65,14 +71,12 @@ metadata:
     name: loki
     namespace: {{ $.Release.Namespace }}
 spec:
-    type: NodePort
     selector:
         app: loki
     ports:
-        - name: loki
-          protocol: TCP
-          port: {{ .port }}
-          nodePort: 30013
+        -   name: loki
+            protocol: TCP
+            port: {{ .port }}
 
 ---
 
@@ -87,7 +91,6 @@ data:
         server:
             http_listen_port: 3100
             grpc_listen_port: 9096
-
         common:
             path_prefix: /tmp/loki
             storage:
@@ -99,20 +102,24 @@ data:
                 instance_addr: 127.0.0.1
                 kvstore:
                     store: inmemory
-
         schema_config:
             configs:
-                - from: 2020-10-24
-                  store: boltdb-shipper
+                - from: 2024-04-01
+                  store: tsdb
                   object_store: filesystem
-                  schema: v11
+                  schema: v13
                   index:
                       prefix: index_
                       period: 24h
-
+        compactor:
+            working_directory: /tmp/loki/compactor
+            delete_request_store: filesystem
+            retention_enabled: true
+            compactor_ring:
+                kvstore:
+                    store: inmemory
         ruler:
             alertmanager_url: http://localhost:9093
-
         limits_config:
             retention_period: 72h
             retention_stream:

@@ -7,58 +7,60 @@ metadata:
     name: syncthing
     namespace: {{ $.Release.Namespace }}
     labels:
-        app: syncthing
+        app.kubernetes.io/instance: syncthing
+        app.kubernetes.io/name: syncthing
 spec:
-    replicas: 1
+    replicas: {{ .replicas }}
     strategy:
         rollingUpdate:
             maxUnavailable: 0
     selector:
         matchLabels:
-            app: syncthing
+            app.kubernetes.io/instance: syncthing
+            app.kubernetes.io/name: syncthing
     template:
         metadata:
+            annotations:
+                backup.velero.io/backup-volumes: app-config
             labels:
-                app: syncthing
+                app.kubernetes.io/instance: syncthing
+                app.kubernetes.io/name: syncthing
         spec:
             containers:
-                - name: syncthing
-                  image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
-                  resources:
-                      requests:
-                          cpu: 125m
-                          memory: 250Mi
-                      limits:
-                          cpu: 250m
-                          memory: 512Mi
-                  ports:
-                      - name: web
-                        containerPort: {{ .port }}
-                      - name: tcp
-                        containerPort: 22000
-                        protocol: TCP
-                      - name: udp
-                        containerPort: 22000
-                        protocol: UDP
-                      - name: udp2
-                        containerPort: 21027
-                        protocol: UDP
-                  volumeMounts:
-                      - name: app-config
-                        mountPath: /config
-                      - name: data-volume
-                        mountPath: /data
+                -   name: syncthing
+                    image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
+{{- if .resources }}
+                    resources:
+{{ toYaml .resources | indent 22 }}
+{{- end }}
+                    ports:
+                        -   name: web
+                            containerPort: {{ .port }}
+                        -   name: tcp
+                            containerPort: 22000
+                            protocol: TCP
+                        -   name: udp
+                            containerPort: 22000
+                            protocol: UDP
+                        -   name: udp2
+                            containerPort: 21027
+                            protocol: UDP
+                    volumeMounts:
+                        -   name: app-config
+                            mountPath: /config
+                        -   name: data-volume
+                            mountPath: /data
 
             restartPolicy: Always
             volumes:
-                - name: app-config
-                  persistentVolumeClaim:
-                      claimName: syncthing-config-pvc
-                - name: data-volume
-                  persistentVolumeClaim:
-                      claimName: syncthing-data-nfs
-
+                -   name: app-config
+                    persistentVolumeClaim:
+                        claimName: syncthing-config-pvc
+                -   name: data-volume
+                    nfs:
+                        path: "/volume1/k3s/syncthing"
+                        server: {{ $.Values.storage.nasIp }}
 ---
 
 apiVersion: v1
@@ -67,17 +69,11 @@ metadata:
     name: syncthing
     namespace: {{ $.Release.Namespace }}
 spec:
-    {{- with .nodePort }}
-    type: NodePort
-    {{- end }}
     selector:
-        app: syncthing
+        app.kubernetes.io/instance: syncthing
+        app.kubernetes.io/name: syncthing
     ports:
-        - name: syncthing
-          protocol: TCP
-          port: {{ .port }}
-          {{- with .nodePort }}
-          nodePort: {{ . }}
-          {{- end }}
-
+        -   name: syncthing
+            protocol: TCP
+            port: {{ .port }}
 {{- end }}

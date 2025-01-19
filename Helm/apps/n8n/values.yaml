@@ -1,13 +1,19 @@
 ---
 n8n:
-  image: n8nio/n8n:0.168.2
-  nodePort: 30114
-  port: 5678
-  replicas: 1
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 125m
-      memory: 512Mi
+    image: n8nio/n8n:1.75.2
+    port: 5678
+    replicas: 1
+    resources:
+        requests:
+            cpu: 10m
+            memory: 250Mi
+
+postgres:
+    image: postgres:16.6
+    dataSize: 2Gi
+    port: 5432
+    resources:
+        requests:
+            cpu: 10m
+            memory: 256Mi
+

@@ -4,3 +4,9 @@ output/
 .secret
 testing
 ansible/playbooks/restore/files/backup
+velero-credentials
+temp
+*.tfvars
+*.tfstate.backup
+.terraform
+docker-data
