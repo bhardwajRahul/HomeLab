@@ -1,12 +1,8 @@
 ---
 cyberchef:
-  image: mpepping/cyberchef:v9.32.3
-#    nodePort: 30123
-  port: 8000
-  resources:
-    requests:
-      cpu: 10m
-      memory: 100Mi
-    limits:
-      cpu: 150m
-      memory: 200Mi
+    image: mpepping/cyberchef:v10.19.4
+    port: 8000
+    resources:
+        requests:
+            cpu: 10m
+            memory: 50Mi

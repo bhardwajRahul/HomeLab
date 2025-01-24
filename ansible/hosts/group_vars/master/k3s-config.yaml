@@ -6,12 +6,10 @@ k3s_server:
     tls-san:
         - "{{ k3s_registration_address }}"
     docker: false
-    flannel-backend: "none"
     disable:
-        - flannel
         - traefik
-        - metrics-server
         - local-storage
+        - servicelb
     disable-network-policy: true
     disable-cloud-controller: true
     write-kubeconfig-mode: "644"

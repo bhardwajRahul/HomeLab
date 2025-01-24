@@ -2,11 +2,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - cgroup-gc
-  - orphanedpodscleaner
-  - reflector
-  - cert-manager
-  - longhorn-system
-  - simplesecrets
-  - ingress-nginx
-  - nfs-subdir-external-provisioner
+    - reflector
+    - ingress-nginx
+    - system-upgrade
+    - longhorn-system
+    - velero
+    - cert-manager
+    - kured
+    - kube-cleanup-operator
+    - descheduler
+    - metallb

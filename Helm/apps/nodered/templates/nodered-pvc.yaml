@@ -1,18 +1,4 @@
 ---
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-    name: nodered-sc
-provisioner: driver.longhorn.io
-allowVolumeExpansion: true
-parameters:
-    numberOfReplicas: "{{ .Values.storage.numberOfReplicas }}"
-    dataLocality: "{{ .Values.storage.dataLocality }}"
-    staleReplicaTimeout: "2800"
-    fromBackup: ""
-
----
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -20,42 +6,7 @@ metadata:
 spec:
     accessModes:
         - ReadWriteMany
-    storageClassName: nodered-sc
+    storageClassName: longhorn
     resources:
         requests:
             storage: {{ .Values.storage.configSize }}
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-    name: backup-nfs-pv
-    labels:
-        type: nfs
-        app: shows
-spec:
-    storageClassName: nfs-direct
-    capacity:
-        storage: 50Gi
-    accessModes:
-        - ReadWriteMany
-    nfs:
-        path: "/volume1/k3s/backup"
-        server: {{ .Values.storage.nasIp }}
-
----
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-    name: backup-nfs
-spec:
-    selector:
-        matchLabels:
-            type: nfs
-            app: shows
-    storageClassName: nfs-direct
-    accessModes:
-        - ReadWriteMany
-    resources:
-        requests:
-            storage: 50Gi

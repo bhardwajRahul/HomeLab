@@ -1,6 +1,6 @@
 ---
 {{- with .Values.grafana }}
----
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,45 +11,48 @@ metadata:
 spec:
     replicas: 1
     strategy:
-        rollingUpdate:
-            maxUnavailable: 0
+        type: Recreate
     selector:
         matchLabels:
             app: grafana
     template:
         metadata:
+            annotations:
+                backup.velero.io/backup-volumes: grafana
             labels:
                 app: grafana
         spec:
             terminationGracePeriodSeconds: 0
             securityContext:
+                privileged: false
+                allowPrivilegeEscalation: false
                 runAsUser: 472
                 runAsGroup: 472
                 fsGroup: 472
             restartPolicy: Always
             containers:
-                - image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
-                  name: grafana
-                  ports:
-                      - containerPort: {{ .port }}
-                        name: http-grafana
-                        protocol: TCP
-                  resources:
-                      requests:
-                          cpu: 100m
-                          memory: 500Mi
-                      limits:
-                          cpu: {{ .limits.cpu }}
-                          memory: {{ .limits.memory }}
-                  volumeMounts:
-                      - mountPath: /var/lib/grafana
-                        name: grafana
+                -   image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
+                    name: grafana
+                    ports:
+                        -   containerPort: {{ .port }}
+                            name: http-grafana
+                            protocol: TCP
+                    resources:
+                        requests:
+                            cpu: 10m
+                            memory: 500Mi
+                        limits:
+                            cpu: {{ .limits.cpu }}
+                            memory: {{ .limits.memory }}
+                    volumeMounts:
+                        -   mountPath: /var/lib/grafana
+                            name: grafana
 
             volumes:
-                - name: grafana
-                  persistentVolumeClaim:
-                      claimName: grafana-pvc
+                -   name: grafana
+                    persistentVolumeClaim:
+                        claimName: grafana-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -58,13 +61,13 @@ metadata:
     namespace: {{ $.Release.Namespace }}
 spec:
     ports:
-        - port: {{ .port }}
+        -   port: {{ .port }}
           {{- with .nodePort }}
-          nodePort: {{ . }}
+            nodePort: {{ . }}
           {{- end }}
-          protocol: TCP
-          targetPort: http-grafana
-          name: grafana
+            protocol: TCP
+            targetPort: http-grafana
+            name: grafana
     selector:
         app: grafana
     sessionAffinity: None

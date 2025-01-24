@@ -7,7 +7,8 @@ metadata:
     name: n8n
     namespace: {{ $.Release.Namespace }}
     labels:
-        app: n8n
+        app.kubernetes.io/instance: n8n
+        app.kubernetes.io/name: n8n
 spec:
     replicas: {{ .replicas }}
     strategy:
@@ -15,79 +16,81 @@ spec:
             maxUnavailable: 0
     selector:
         matchLabels:
-            app: n8n
+            app.kubernetes.io/instance: n8n
+            app.kubernetes.io/name: n8n
     template:
         metadata:
             labels:
-                app: n8n
+                app.kubernetes.io/instance: n8n
+                app.kubernetes.io/name: n8n
         spec:
             containers:
-                - name: n8n
-                  image: {{ .image }}
-                  imagePullPolicy: IfNotPresent
-                  env:
-                      - name: N8N_BASIC_AUTH_ACTIVE
-                        value: "true"
-                      - name: N8N_BASIC_AUTH_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: app
-                                key:  username
-                      - name: N8N_BASIC_AUTH_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: app
-                                key:  password
-                      - name: DB_POSTGRESDB_DATABASE
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  name
-                      - name: DB_POSTGRESDB_HOST
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  host
-                      - name: DB_POSTGRESDB_PORT
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  port
-                      - name: DB_POSTGRESDB_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  username
-                      - name: DB_POSTGRESDB_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  password
-                      - name: DB_TYPE
-                        valueFrom:
-                            secretKeyRef:
-                                name: db
-                                key:  type
-                      - name: N8N_PORT
-                        value: "{{ .port }}"
-                      - name: N8N_ENCRYPTION_KEY
-                        valueFrom:
-                            secretKeyRef:
-                                name: app
-                                key:  encryption_key
-                      - name: N8N_PAYLOAD_SIZE_MAX
-                        valueFrom:
-                            secretKeyRef:
-                                name: app
-                                key:  maxFileSizeMb
+                -   name: n8n
+                    image: {{ .image }}
+                    imagePullPolicy: IfNotPresent
+                    env:
+                        -   name: N8N_BASIC_AUTH_ACTIVE
+                            value: "true"
+                        -   name: N8N_BASIC_AUTH_USER
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: username
+                        -   name: N8N_BASIC_AUTH_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: password
+                        -   name: DB_POSTGRESDB_HOST
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: host
+                        -   name: DB_POSTGRESDB_DATABASE
+                            valueFrom:
+                                secretKeyRef:
+                                    name: db
+                                    key: POSTGRES_DB
+                        -   name: DB_POSTGRESDB_PORT
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: port
+                        -   name: DB_POSTGRESDB_USER
+                            valueFrom:
+                                secretKeyRef:
+                                    name: db
+                                    key: POSTGRES_USER
+                        -   name: DB_POSTGRESDB_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: db
+                                    key: POSTGRES_PASSWORD
+                        -   name: DB_TYPE
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: type
+                        -   name: N8N_PORT
+                            value: "{{ .port }}"
+                        -   name: N8N_ENCRYPTION_KEY
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: encryption_key
+                        -   name: N8N_PAYLOAD_SIZE_MAX
+                            valueFrom:
+                                secretKeyRef:
+                                    name: app
+                                    key: maxFileSizeMb
 
 {{- if .resources }}
-                  resources:
+                    resources:
 {{ toYaml .resources | indent 22 }}
 {{- end }}
-                  ports:
-                      - name: web
-                        containerPort: {{ .port }}
+                    ports:
+                        -   name: web
+                            containerPort: {{ .port }}
 
             restartPolicy: Always
 
@@ -99,13 +102,12 @@ metadata:
     name: n8n
     namespace: {{ $.Release.Namespace }}
 spec:
-    type: NodePort
     selector:
-        app: n8n
+        app.kubernetes.io/instance: n8n
+        app.kubernetes.io/name: n8n
     ports:
-        - name: n8n
-          protocol: TCP
-          port: {{ .port }}
-          nodePort: {{ .nodePort }}
+        -   name: n8n
+            protocol: TCP
+            port: {{ .port }}
 
 {{- end }}

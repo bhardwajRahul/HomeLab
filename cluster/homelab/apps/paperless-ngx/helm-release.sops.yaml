@@ -1,0 +1,109 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+    name: paperless-ngx
+    namespace: paperless-ngx
+spec:
+    interval: 5m
+    install:
+        createNamespace: true
+        crds: CreateReplace
+        remediation:
+            retries: 3
+    upgrade:
+        crds: CreateReplace
+        remediation:
+            retries: 3
+    chart:
+        spec:
+            chart: paperless-ngx
+            version: 0.22.0
+            interval: 5m
+            sourceRef:
+                kind: HelmRepository
+                name: gabe565
+                namespace: flux-system
+    values:
+        env:
+            PAPERLESS_OCR_LANGUAGES: eng bul
+            PAPERLESS_TIKA_ENABLED: "true"
+            PAPERLESS_TIKA_ENDPOINT: http://tika.tika:9998
+            PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg.gotenberg:80
+        podAnnotations:
+            backup.velero.io/backup-volumes: data,media,export,consume
+        service:
+          main:
+            type: LoadBalancer
+            loadBalancerIP: 192.168.1.8
+            ports:
+              http:
+                port: 80
+        image:
+            # -- Image repository
+            repository: ghcr.io/paperless-ngx/paperless-ngx
+            # -- Image pull policy
+            pullPolicy: IfNotPresent
+            # -- Image tag
+            tag: 2.14.5
+        persistence:
+            data:
+                enabled: true
+                storageClass: longhorn
+                accessMode: ReadWriteOnce
+                size: 10Gi
+            media:
+                enabled: true
+                storageClass: longhorn
+                accessMode: ReadWriteOnce
+                size: 100Gi
+            export:
+                enabled: true
+                storageClass: longhorn
+                accessMode: ReadWriteOnce
+                size: 1Gi
+            consume:
+                enabled: true
+                storageClass: longhorn
+                accessMode: ReadWriteOnce
+                size: 4Gi
+        ingress:
+            main:
+                ingressClassName: nginx
+                enabled: true
+                annotations:
+                    gethomepage.dev/enabled: ENC[AES256_GCM,data:JxMs6Q==,iv:sYUi4doE9KmAWSxFBLRR36jCtt3Z/CwJsGNNbAkoeKU=,tag:VRPfTA80g4cr+99sI1buFA==,type:str]
+                    gethomepage.dev/description: ENC[AES256_GCM,data:JxqBF+hA6a1CXenWpaVliWaWo5vk6b4LX4k=,iv:55KhxexrKunESC4eXRXVamoE6QU+b8reWNelaF56yyo=,tag:vptg0i73smqel9laixHm/w==,type:str]
+                    gethomepage.dev/group: ENC[AES256_GCM,data:DZo628fcWdhF,iv:0Mb+Us9V7lfG4y456UwFz/7W27QSQDy8PFmhWTBs3Ig=,tag:NZ2SJr1mv+6bwg/3fJRlOw==,type:str]
+                    gethomepage.dev/icon: ENC[AES256_GCM,data:lQXA7fMWs0tU2BVL7Q==,iv:mPIVGZ+I6EfNy/XlzNjeak1/nD9OvTexF4TWZpQVZFg=,tag:mXxp3d5De6cmXYNJRsp31w==,type:str]
+                    gethomepage.dev/name: ENC[AES256_GCM,data:1nbYw9+m7Tb5U3peWg==,iv:1jPI9S1rVyRcOs4ahmFEXvqfe5dkvQmf2zijwofyZpo=,tag:HGrQ9qZNSiuPO/1V0BIYyA==,type:str]
+                    gethomepage.dev/widget.type: ENC[AES256_GCM,data:YSTGNp6jcBiRailZ,iv:NDMAVdTLO9+0fx9I9waQeO2YP3irSIou/dsYbCJAal8=,tag:DC7G0hsKn6EJnwNObsfPXg==,type:str]
+                    gethomepage.dev/widget.url: ENC[AES256_GCM,data:XVwR9ckCxRhXgn99PHgzWToZBcBOKc4JB94WXK07Yfk7wQ==,iv:kWJVO1vlcP7DH1bV+7jhXj7Sj1dajSV1rkmW+8pQkY4=,tag:NS5dcxgkXpBEYWMzawKCGw==,type:str]
+                    gethomepage.dev/widget.key: ENC[AES256_GCM,data:gUdpOOuK2Hk8EpwHnivC+vzsrDHaLGnuHD5sY8o2EkU7Djdo+H3fOg==,iv:Z8dfoKw0msqvnwWWVdBWfGavBiMtXIS5x3KIS1RYg+A=,tag:GJbbtI0uIa+zvA9xAqokvg==,type:str]
+                hosts:
+                    - host: paperless.stefangenov.site
+                      paths:
+                        - path: /
+                tls:
+                    - secretName: ingress
+                      hosts:
+                        - '*.stefangenov.site'
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1mq6usjzvvxvcp7tl03yjdqd0kgjhhvhz48kmg86p43nhx0jc75jssw0kfn
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNdXR5aEM2dW5yVE42ci85
+            WDg4Mkc1T2VWSXVVV1VucGVZNmZTQ004aXcwCklucVc0QU9aMGZBQ0ZNUmsxU3Bu
+            WVF2VFFmVEpFMkM5THZGVkd6d204dk0KLS0tIDhkaDQycm9rQmI4N0FvL2ZtZjZa
+            T1dOOHU5S0p0dHUyQ3Zsbmx6RmF0MlkKTrTTDkKHiCU/r50BW+FLSFNgn+M0qHlB
+            HtnCDFgUdnij/1cDkNT9wAYgtbeV1P6hYUGjgPVUjmiFaiCHBZdG/w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-09-20T03:40:55Z"
+    mac: ENC[AES256_GCM,data:B9/nyYXd2dH98ZVIuvUQ6XrINZy1UUlZJb4G7V3F+0b/EhFGJnuYrAWf7hGNmc9+bWh9NJkSv18aSfcmjfGvmsUHr5lGxW6dZQF7iKJRA3FGWHpUwQCldQVyqu232wFsGxFMcXek3/tpzQPHHI4o99+nfsOpVRKdLFPN1+8Q62A=,iv:oNDa5BLGa1auQnWiOR8CmqQk3NJOBaZ93HeyQe5tL/Y=,tag:r9AN3bD5nq/FuvqE/7+pHQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(rules|annotations|)$
+    version: 3.8.1
