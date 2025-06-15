@@ -19,7 +19,7 @@ storage:
         config: 5Gi
 
 flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.3.22
+    image: ghcr.io/flaresolverr/flaresolverr:v3.3.25
     port: 8191
     resources:
         requests:
@@ -40,7 +40,7 @@ transmission:
             memory: 2Gi
 prowlarr:
     replicas: 1
-    image: ghcr.io/linuxserver/prowlarr:1.36.3
+    image: ghcr.io/linuxserver/prowlarr:1.37.0
     port: 9696
     resources:
         requests:
@@ -51,7 +51,7 @@ prowlarr:
             memory: 2Gi
 
 radarr:
-    image: ghcr.io/linuxserver/radarr:5.25.0
+    image: ghcr.io/linuxserver/radarr:5.26.2
     port: 7878
     resources:
         requests:
@@ -59,7 +59,7 @@ radarr:
             memory: 50Mi
 
 readarr:
-    image: lscr.io/linuxserver/readarr:0.4.17-nightly
+    image: lscr.io/linuxserver/readarr:0.4.19-nightly
     replicas: 1
     port: 8787
     resources:
@@ -109,7 +109,7 @@ cleanuperr:
             memory: 1Gi
 
 huntarr:
-    image: ghcr.io/plexguide/huntarr:7.5.6
+    image: ghcr.io/plexguide/huntarr:7.8.2
     port: 9705
     resources:
         requests:
