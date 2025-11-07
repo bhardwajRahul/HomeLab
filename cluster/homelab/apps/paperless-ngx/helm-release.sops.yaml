@@ -31,6 +31,9 @@ spec:
             PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg.gotenberg:80
         podAnnotations:
             backup.velero.io/backup-volumes: data,media,export,consume
+        redis:
+            image:
+                tag: latest
         service:
             main:
                 type: LoadBalancer
@@ -71,14 +74,14 @@ spec:
                 ingressClassName: nginx
                 enabled: true
                 annotations:
-                    gethomepage.dev/enabled: ENC[AES256_GCM,data:dOuvOw==,iv:5QRtfluMrRvYN2blykDil98TYfTmVRodZG1EolC+yTI=,tag:LNHHJSAWf9fJqE38bEEhWg==,type:str]
-                    gethomepage.dev/description: ENC[AES256_GCM,data:KnKuDlBDGEzHHiI3Tee1Z5DiPNBd3AQTnGc=,iv:pRebquAEuAfFdxwDOoPNKsMGLn94pbsq+T49OGBht8A=,tag:KTLr/6QbdIwddZWq3mF0fw==,type:str]
-                    gethomepage.dev/group: ENC[AES256_GCM,data:1oztcAHxFRu4,iv:0BDXZYlOzPa2DiH13iLq/TRMnDDaDYPWVt2GcLVRsiM=,tag:zEC+mFefaJ8jYm5mNum28A==,type:str]
-                    gethomepage.dev/icon: ENC[AES256_GCM,data:NLp/L/YujszUd/Gncw==,iv:yHRnXbvzknkRtcoF+wrr/FTQmjj2MseEUutgUwF3pU0=,tag:b4J8pd1b6GbjHUOxG9Nx/Q==,type:str]
-                    gethomepage.dev/name: ENC[AES256_GCM,data:6GXXQhko+RQQkGQbug==,iv:94+FheBFv1DN619OhmBiWbUHGZWTB/K2+HhQeM0TKSk=,tag:9SkJOP0qG3rK5srD1CeTbQ==,type:str]
-                    gethomepage.dev/widget.type: ENC[AES256_GCM,data:UNe57TLinIF/LjyU,iv:93ejxeljHg42ksU6gles47svyvIdOOds8/9jTBJC9to=,tag:2Yu5JHiiM4CyX3EfT/HQHw==,type:str]
-                    gethomepage.dev/widget.url: ENC[AES256_GCM,data:2+DJ0euJmmn48lzxI7xK2sJHz8auBNXXgkjU9Q==,iv:Jdv6XPv8whfQMTFzMeYCHnD4owD3OjDYY2l+KNG2vgo=,tag:Eng7Aqp00HimpbzVmTGQqA==,type:str]
-                    gethomepage.dev/widget.key: ENC[AES256_GCM,data:NfTSgmyuP0/sHdUDhT1WL1eTzzeHu+7WHdmqYdv3/elJrVb7v/Cf4A==,iv:EnTFVdvq9LbqvAh2RmeIWZjPYvoJyoHfX58EpnU5/DA=,tag:qf0ClkErUI8QGbfFgYQ+kA==,type:str]
+                    gethomepage.dev/enabled: "true"
+                    gethomepage.dev/description: Document Management System
+                    gethomepage.dev/group: Knowledge
+                    gethomepage.dev/icon: paperless-ngx
+                    gethomepage.dev/name: Paperless-NGX
+                    gethomepage.dev/widget.type: paperlessngx
+                    gethomepage.dev/widget.url: https://paperless.sgenov.dev
+                    gethomepage.dev/widget.key: ENC[AES256_GCM,data:x6wVx9Tzi5/AdxoNCEXOoSXuDD8oQrEB5MboblNRE0bhlqWkwdRHXQ==,iv:CCJFWDF2rqd5dgBHt/GKQkgFFpcVgOfHNyNtUBPA+IU=,tag:Tq2ECdLn7d7Ohg9eYybzFw==,type:str]
                 hosts:
                     - host: paperless.sgenov.dev
                       paths:
@@ -88,22 +91,17 @@ spec:
                       hosts:
                         - '*.sgenov.dev'
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
     age:
         - recipient: age1mq6usjzvvxvcp7tl03yjdqd0kgjhhvhz48kmg86p43nhx0jc75jssw0kfn
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA5WGI5bEpKNkNaeUFtWHFC
-            dWFRRnRabjVXTExYcmRQWVp2SWU4dXNzb3ljCkdUR3lkNzNFT2d4TjhIakNjT01U
-            Q25tMVZ6bURFV0JVOTZRa2xWUDlrV3MKLS0tIE1wQmNsMG4vVFhaT1NGUUlYWGZx
-            djVLdGFPTUpOV2tESmdSL1VzVDAzY2MK7Gwu9CL9ldfj3c77khfk6ZL0eJJvIgjY
-            HkrJtG780NcVjGgDSjciJZ8WdkO3epsZbw9SrQGlMdmBFq1zYLHv4g==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaZmNBZHliWW16UDlVTHJL
+            OFZPWGplVVRINDZrK25NL2tMRzdJRjRHVFdzCm9kekFVeit5Tkl1TTNhNGVMMFcw
+            R2dKN2lPOWsyZ3ViR0lndlB1RFUwWlkKLS0tIDNhbkpNQjZjR2psZHhGSFUzRDEw
+            V0xUTTJZQmYyeThCV1FRWEh1c0hLZzQKILA8218SsOPK0BG1RQNCJUpj6dMeBd9L
+            jStOOdwauwhDD+50hDgRR0O9AZiduPzwua8YgWA/vzjhQjH8XlhE2A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-04-20T20:13:08Z"
-    mac: ENC[AES256_GCM,data:9EKKAh2VgftiOKOlPTvakHGgpiblxCiA6wlc4/EuVRY9aKUNos7FBD4SLJXRqtr1bKFSFc/YDV8wPdElT8Hj+gWit9jEf0zh5zvXn9Cw1pV1m3kZFxRDdeiB0hwq/+xMC3lj6vm/aCX2kEwC05UH4C63uEa9rVAsvZJ9ijvypFs=,iv:TcGExx2Ghzamx+TQ4CeQ+px1d1P4WYYP+ULWaDz42xQ=,tag:i59xyCisNq4M5N37hGZPbA==,type:str]
-    pgp: []
-    encrypted_regex: ^(rules|annotations|)$
-    version: 3.8.1
+    lastmodified: "2025-11-07T13:41:42Z"
+    mac: ENC[AES256_GCM,data:Fyld3/9o2SPncqV86CS4JydLWsSGNPZzN1hgtLGsfR9rpGdUDfS2qreMPPgU0ex9j4EOIxTYGNWhH6IxIB4oVwfdCH33Amb0eoV2eqE6EGdWgTs0NVtBN2xUgPSrVr57i084QJEPEpTOL9G14GAtkR8C7gm7bUy4KxUOYETy2Ho=,iv:m0i/7zF2vRfdB4nlYKbwB9RQkNQQ2hRxBdXZn9LMses=,tag:SnqDgIYMk8zl/T6yvX/dwQ==,type:str]
+    encrypted_regex: (?i)password|webhook_url|token|key
+    version: 3.11.0
